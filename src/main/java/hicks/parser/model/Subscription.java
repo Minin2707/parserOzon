@@ -1,7 +1,10 @@
 package hicks.parser.model;
 
+
 import jakarta.persistence.*;
 import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Table(name = "subscriptions",
@@ -24,18 +27,78 @@ public class Subscription {
     @Column(nullable = false)
     private BigDecimal threshold;
 
-    // === getters/setters ===
+    /** Список продуктов, которые мониторятся для этой подписки */
+    @OneToMany(mappedBy = "subscription", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<MonitoredProduct> monitoredProducts = new ArrayList<>();
 
-    public Long getId() { return id; }
-    public void setId(Long id) { this.id = id; }
+    // === Constructors ===
+    public Subscription() {}
 
-    public Long getChatId() { return chatId; }
-    public void setChatId(Long chatId) { this.chatId = chatId; }
+    public Subscription(Long chatId, String sellerId, BigDecimal threshold) {
+        this.chatId = chatId;
+        this.sellerId = sellerId;
+        this.threshold = threshold;
+    }
 
-    public String getSellerId() { return sellerId; }
-    public void setSellerId(String sellerId) { this.sellerId = sellerId; }
+    // === Getters and Setters ===
+    public Long getId() {
+        return id;
+    }
 
-    public BigDecimal getThreshold() { return threshold; }
-    public void setThreshold(BigDecimal threshold) { this.threshold = threshold; }
+    public void setId(Long id) {
+        this.id = id;
+    }
+
+    public Long getChatId() {
+        return chatId;
+    }
+
+    public void setChatId(Long chatId) {
+        this.chatId = chatId;
+    }
+
+    public String getSellerId() {
+        return sellerId;
+    }
+
+    public void setSellerId(String sellerId) {
+        this.sellerId = sellerId;
+    }
+
+    public BigDecimal getThreshold() {
+        return threshold;
+    }
+
+    public void setThreshold(BigDecimal threshold) {
+        this.threshold = threshold;
+    }
+
+    public List<MonitoredProduct> getMonitoredProducts() {
+        return monitoredProducts;
+    }
+
+    public void addMonitoredProduct(MonitoredProduct product) {
+        monitoredProducts.add(product);
+        product.setSubscription(this);
+    }
+
+    public void removeMonitoredProduct(MonitoredProduct product) {
+        monitoredProducts.remove(product);
+        product.setSubscription(null);
+    }
+
+    // === equals and hashCode (by id) ===
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof Subscription)) return false;
+        return id != null && id.equals(((Subscription) o).id);
+    }
+
+    @Override
+    public int hashCode() {
+        return getClass().hashCode();
+    }
 }
+
 

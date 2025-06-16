@@ -9,6 +9,8 @@ import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
+import java.math.BigDecimal;
+
 
 @Component
 public class PriceAlertBot extends TelegramLongPollingBot {
@@ -47,12 +49,17 @@ public class PriceAlertBot extends TelegramLongPollingBot {
     @Override
     public void onUpdateReceived(Update update) {
         if (update.hasMessage() && update.getMessage().hasText()) {
-            String txt = update.getMessage().getText().trim();
-            Long chatId = update.getMessage().getChatId();
-            if ("/start".equals(txt)) {
-                subscriptionService.addSubscriber(chatId);
-                sendText(chatId, "✅ Вы подписаны! Буду присылать уведомления о падении цены.");
+            String txt    = update.getMessage().getText().trim();
+            Long   chatId = update.getMessage().getChatId();
+
+            if ("/start".equalsIgnoreCase(txt)) {
+                // 1) вызываем сервис с порогом 0.7 (70%)
+                subscriptionService.addSubscriber(chatId, BigDecimal.valueOf(0.7));
+                // 2) подтверждаем пользователю
+                sendText(chatId, "✅ Вы подписаны на все магазины! "
+                        + "Я буду присылать уведомления, когда цена упадёт на 70% или более.");
             }
+            // (мы больше не обрабатываем никаких других сообщений)
         }
     }
 

@@ -1,9 +1,11 @@
 package hicks.parser.service;
 
 
+import java.math.BigDecimal;
 import java.util.List;
 
 import hicks.parser.model.Subscription;
+import hicks.parser.ozon.OzonSellers;
 import hicks.parser.repository.SubscriptionRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -13,9 +15,11 @@ import org.springframework.transaction.annotation.Transactional;
 public class SubscriptionService {
 
     private final SubscriptionRepository subscriptionRepo;
+    private final OzonSellers ozonSellers;
 
-    public SubscriptionService(SubscriptionRepository subscriptionRepo) {
+    public SubscriptionService(SubscriptionRepository subscriptionRepo, OzonSellers ozonSellers) {
         this.subscriptionRepo = subscriptionRepo;
+        this.ozonSellers = ozonSellers;
     }
 
     /**
@@ -23,15 +27,16 @@ public class SubscriptionService {
      * Если chatId уже есть — не дублируем.
      */
     @Transactional
-    public void addSubscriber(Long chatId) {
-        boolean exists = subscriptionRepo.existsByChatId(chatId);
-        if (!exists) {
-            Subscription sub = new Subscription();
-            sub.setChatId(chatId);
-            // Заодно можно сразу выставить sellerId и threshold, если их заранее знаем:
-            // sub.setSellerId("piquadro-2232276");
-            // sub.setThreshold(new BigDecimal("0.7"));
-            subscriptionRepo.save(sub);
+    public void addSubscriber(Long chatId, BigDecimal threshold) {
+        for (String sellerId : ozonSellers.getSellers()) {
+            // проверяем, не подписан ли уже
+            boolean exists = subscriptionRepo
+                    .existsByChatIdAndSellerId(chatId, sellerId);
+            if (!exists) {
+                // создаём и сохраняем новую подписку
+                Subscription s = new Subscription(chatId, sellerId, threshold);
+                subscriptionRepo.save(s);
+            }
         }
     }
 
