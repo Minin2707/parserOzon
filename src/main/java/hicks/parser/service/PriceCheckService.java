@@ -25,8 +25,13 @@ public class PriceCheckService {
      */
     @Transactional
     public void checkPrices() {
-        List<MonitoredProduct> products = productRepo.findAll();
+        // обрабатываем только товары, связанные с активными подписками
+        List<MonitoredProduct> products = productRepo.findBySubscription_ActiveTrue();
         for (MonitoredProduct product : products) {
+            if (!product.getSubscription().isActive()) {
+                // защита от неконсистентных данных
+                continue;
+            }
             BigDecimal price = fetchPrice(product.getProductId());
             product.setLastPrice(price);
             product.setLastChecked(LocalDateTime.now());

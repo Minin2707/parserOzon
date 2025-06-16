@@ -29,14 +29,18 @@ public class SubscriptionService {
     @Transactional
     public void addSubscriber(Long chatId, BigDecimal threshold) {
         for (String sellerId : ozonSellers.getSellers()) {
-            // проверяем, не подписан ли уже
-            boolean exists = subscriptionRepo
-                    .existsByChatIdAndSellerId(chatId, sellerId);
-            if (!exists) {
-                // создаём и сохраняем новую подписку
-                Subscription s = new Subscription(chatId, sellerId, threshold);
-                subscriptionRepo.save(s);
-            }
+            subscriptionRepo
+                    .findByChatIdAndSellerId(chatId, sellerId)
+                    .ifPresentOrElse(existing -> {
+                        if (!existing.isActive()) {
+                            existing.setActive(true);
+                            existing.setFailureCount(0);
+                            subscriptionRepo.save(existing);
+                        }
+                    }, () -> {
+                        Subscription s = new Subscription(chatId, sellerId, threshold);
+                        subscriptionRepo.save(s);
+                    });
         }
     }
 
