@@ -2,6 +2,7 @@ package hicks.parser.model;
 
 import jakarta.persistence.*;
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "monitored_products")
@@ -18,6 +19,14 @@ public class MonitoredProduct {
     /** Базовая (изначальная) цена, от которой считаем изменение */
     @Column(name = "baseline_price", nullable = false)
     private BigDecimal baselinePrice;
+
+    /** Последняя полученная цена */
+    @Column(name = "last_price")
+    private BigDecimal lastPrice;
+
+    /** Дата и время последней проверки цены */
+    @Column(name = "last_checked")
+    private LocalDateTime lastChecked;
 
     /** Флаг, был ли уже отправлен alert о падении цены */
     @Column(nullable = false)
@@ -36,6 +45,8 @@ public class MonitoredProduct {
         this.baselinePrice = baselinePrice;
         this.subscription = subscription;
         this.notified = false;
+        this.lastPrice = baselinePrice;
+        this.lastChecked = LocalDateTime.now();
     }
 
     // === Getters и Setters ===
@@ -61,6 +72,22 @@ public class MonitoredProduct {
 
     public void setBaselinePrice(BigDecimal baselinePrice) {
         this.baselinePrice = baselinePrice;
+    }
+
+    public BigDecimal getLastPrice() {
+        return lastPrice;
+    }
+
+    public void setLastPrice(BigDecimal lastPrice) {
+        this.lastPrice = lastPrice;
+    }
+
+    public LocalDateTime getLastChecked() {
+        return lastChecked;
+    }
+
+    public void setLastChecked(LocalDateTime lastChecked) {
+        this.lastChecked = lastChecked;
     }
 
     public boolean isNotified() {
@@ -98,6 +125,8 @@ public class MonitoredProduct {
                 "id=" + id +
                 ", productId='" + productId + '\'' +
                 ", baselinePrice=" + baselinePrice +
+                ", lastPrice=" + lastPrice +
+                ", lastChecked=" + lastChecked +
                 ", notified=" + notified +
                 '}';
     }

@@ -58,6 +58,25 @@ public class SubscriptionService {
     }
 
     /**
+     * Увеличить счётчик сбоев отправки сообщения. Если количество
+     * подряд неудачных попыток превысит 3, подписка временно
+     * деактивируется.
+     */
+    @Transactional
+    public void recordFailure(Long chatId) {
+        List<Subscription> list = subscriptionRepo.findByChatId(chatId);
+        for (Subscription s : list) {
+            int count = s.getFailureCount() + 1;
+            s.setFailureCount(count);
+            if (count >= 3) {
+                s.setActive(false);
+                s.setFailureCount(0);
+            }
+        }
+        subscriptionRepo.saveAll(list);
+    }
+
+    /**
      * Для расширенной логики: подписка на конкретного sellerId.
      */
 

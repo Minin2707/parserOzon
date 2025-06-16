@@ -27,6 +27,14 @@ public class Subscription {
     @Column(nullable = false)
     private BigDecimal threshold;
 
+    /** Флаг активности подписки */
+    @Column(nullable = false)
+    private boolean active = true;
+
+    /** Количество подряд неудачных попыток отправки */
+    @Column(name = "failure_count", nullable = false)
+    private int failureCount;
+
     /** Список продуктов, которые мониторятся для этой подписки */
     @OneToMany(mappedBy = "subscription", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<MonitoredProduct> monitoredProducts = new ArrayList<>();
@@ -63,6 +71,22 @@ public class Subscription {
 
     public void setSellerId(String sellerId) {
         this.sellerId = sellerId;
+    }
+
+    public boolean isActive() {
+        return active;
+    }
+
+    public void setActive(boolean active) {
+        this.active = active;
+    }
+
+    public int getFailureCount() {
+        return failureCount;
+    }
+
+    public void setFailureCount(int failureCount) {
+        this.failureCount = failureCount;
     }
 
     public BigDecimal getThreshold() {

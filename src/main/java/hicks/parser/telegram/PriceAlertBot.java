@@ -2,6 +2,8 @@ package hicks.parser.telegram;
 
 
 import hicks.parser.service.SubscriptionService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.bots.TelegramLongPollingBot;
@@ -14,6 +16,8 @@ import java.math.BigDecimal;
 
 @Component
 public class PriceAlertBot extends TelegramLongPollingBot {
+
+    private static final Logger log = LoggerFactory.getLogger(PriceAlertBot.class);
 
     // username хранится здесь и отдается в getBotUsername()
     private final String botUsername;
@@ -82,9 +86,8 @@ public class PriceAlertBot extends TelegramLongPollingBot {
         try {
             execute(msg);
         } catch (TelegramApiException e) {
-            throw new RuntimeException(e);
-            // логируем неудачную отправку,
-            // можно пометить подписчика как недоступного
+            log.error("Failed to send message to chat {}", chatId, e);
+            subscriptionService.recordFailure(chatId);
         }
     }
 }

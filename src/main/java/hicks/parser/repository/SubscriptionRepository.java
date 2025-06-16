@@ -21,9 +21,12 @@ public interface SubscriptionRepository extends JpaRepository<Subscription, Long
     /** Удалить подписку чата на конкретного продавца */
     void deleteByChatIdAndSellerId(Long chatId, String sellerId);
 
-    /** Получить список всех chatId для рассылки */
-    @Query("SELECT DISTINCT s.chatId FROM Subscription s")
+    /** Получить список всех chatId для рассылки (только активные) */
+    @Query("SELECT DISTINCT s.chatId FROM Subscription s WHERE s.active = true")
     List<Long> findAllChatIds();
+
+    /** Получить все подписки чата */
+    List<Subscription> findByChatId(Long chatId);
 
     /** Найти подписку по чату и продавцу */
     Optional<Subscription> findByChatIdAndSellerId(Long chatId, String sellerId);
