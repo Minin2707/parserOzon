@@ -23,7 +23,13 @@ public class Subscription {
     @Column(name = "seller_id", nullable = false)
     private String sellerId;
 
-    /** Порог падения в долях (0.7 = 70%) */
+    /**
+     * Порог падения цены в долях.
+     * <p>
+     * Уведомление отправляется, когда текущая цена товара
+     * становится меньше или равна {@code baselinePrice * threshold}.
+     * Например, значение {@code 0.7} означает падение цены на 30&nbsp;%.
+     */
     @Column(nullable = false)
     private BigDecimal threshold;
 

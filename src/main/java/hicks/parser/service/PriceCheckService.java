@@ -2,6 +2,7 @@ package hicks.parser.service;
 
 import hicks.parser.model.MonitoredProduct;
 import hicks.parser.repository.MonitoredProductRepository;
+import hicks.parser.telegram.PriceAlertBot;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -12,9 +13,11 @@ import java.util.List;
 @Service
 public class PriceCheckService {
     private final MonitoredProductRepository productRepo;
+    private final PriceAlertBot alertBot;
 
-    public PriceCheckService(MonitoredProductRepository productRepo) {
+    public PriceCheckService(MonitoredProductRepository productRepo, PriceAlertBot alertBot) {
         this.productRepo = productRepo;
+        this.alertBot = alertBot;
     }
 
     /**
@@ -27,6 +30,20 @@ public class PriceCheckService {
             BigDecimal price = fetchPrice(product.getProductId());
             product.setLastPrice(price);
             product.setLastChecked(LocalDateTime.now());
+
+            BigDecimal thresholdPrice = product.getBaselinePrice()
+                    .multiply(product.getSubscription().getThreshold());
+
+            if (price.compareTo(thresholdPrice) <= 0 && !product.isNotified()) {
+                Long chatId = product.getSubscription().getChatId();
+                String text = "Цена на товар " + product.getProductId() +
+                        " упала до " + price;
+                alertBot.sendAlert(chatId, text);
+                product.setNotified(true);
+            } else if (price.compareTo(thresholdPrice) > 0 && product.isNotified()) {
+                product.setNotified(false);
+            }
+
             productRepo.save(product);
         }
     }
