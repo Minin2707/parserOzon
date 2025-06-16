@@ -16,10 +16,12 @@ public class SubscriptionService {
 
     private final SubscriptionRepository subscriptionRepo;
     private final OzonSellers ozonSellers;
+    private final SellerProductService sellerProductService;
 
-    public SubscriptionService(SubscriptionRepository subscriptionRepo, OzonSellers ozonSellers) {
+    public SubscriptionService(SubscriptionRepository subscriptionRepo, OzonSellers ozonSellers,SellerProductService sellerProductService) {
         this.subscriptionRepo = subscriptionRepo;
         this.ozonSellers = ozonSellers;
+        this.sellerProductService = sellerProductService;
     }
 
     /**
@@ -40,6 +42,7 @@ public class SubscriptionService {
                     }, () -> {
                         Subscription s = new Subscription(chatId, sellerId, threshold);
                         subscriptionRepo.save(s);
+                        sellerProductService.loadInitialProducts(s);
                     });
         }
     }
